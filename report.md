@@ -31,6 +31,50 @@
 2. Иначе перемешиваем элементы массива случайным образом.
 3. Проверяем, отсортирован ли массив после перемешивания. Если да, то завершаем алгоритм, иначе повторяем шаги 2-3.
 
+
+### Код алгоритма
+```
+function Bogosort(arr){
+    var isSorted = function(arr){
+        for(var i = 1; i < arr.length; i++){
+            if (arr[i-1] > arr[i]) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    function shuffle(arr){
+        var count = arr.length, temp, index;
+
+        while(count > 0){
+            index = Math.floor(Math.random() * count);
+            count--;
+
+            temp = arr[count];
+            arr[count] = arr[index];
+            arr[index] = temp;
+        }
+
+        return arr;
+    }
+
+   function sort(arr){
+        var sorted = false;
+        while(!sorted){
+            arr = shuffle(arr);
+            sorted = isSorted(arr);
+        }
+        return arr;
+    }
+
+    return sort(arr);
+}
+
+```
+
+
+
 ### Плюсы и минусы
 
 Плюсы:
@@ -44,6 +88,7 @@
 
 ### Источники
 - [Wikipedia](https://en.wikipedia.org/wiki/Bogosort)
+- https://w3resource.com/javascript-exercises/searching-and-sorting-algorithm/searching-and-sorting-algorithm-exercise-14.php
 
 Сортировка пузырьком — элементарный алгоритм
 сортировки, который сравнивает
@@ -72,7 +117,7 @@
 - [Wikipedia](https://en.wikipedia.org/wiki/Bubble_sort)
 - [GeeksforGeeks](https://www.geeksforgeeks.org/bubble-sort/)
 
-## Сортировка деревом (Tree Sort) ИИ
+<!## Сортировка деревом (Tree Sort) ИИ
 
 Дерево - это структура данных, которая состоит из корня и ноль или более поддеревьев, каждое из которых также является деревом. Сортировка деревом использует бинарное дерево для сортировки элементов.
 
@@ -110,6 +155,55 @@
 3. Сокращение диапазона массива на 1, исключая отсортированные элементы, и перестройка кучи (свап корневой вершины с наибольшим из листьев поддерева). Поэтому возникает необходимость восстановления структуры пирамиды (Heapify).
 4. Повторяем шаги 2-3, пока диапазон не станет 1.
 
+
+
+### Код алгоритма
+```
+
+// recursive
+
+function pyramid(n, row = 0, level = '#') {
+    if (n === row) {
+        return;
+    }
+
+    if (level.length === 2 * n - 1) {
+        console.log(level);
+        return pyramid(n, row + 1);
+    }
+
+    level = level.length < 2 * row ? `#${level}#` : ` ${level} `;
+    pyramid(n, row, level);
+}
+
+
+
+// iterative
+
+function pyramid(n) {
+    const columnCount = 2 * n - 1;
+    const midColumn = Math.floor(columnCount / 2);
+
+    for (let row = 0; row < n; row++) {
+        let level = '';
+
+        for (let column = 0; column < columnCount; column++) {
+            if (Math.abs(column - midColumn) <= row) {
+                level += '#';
+            } else {
+                level += ' ';
+            }
+        }
+
+        console.log(level);
+    }
+}
+
+```
+
+
+
+
 ### Плюсы и минусы
 
 Плюсы:
@@ -123,8 +217,11 @@
 ### Источники
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2009). Introduction to algorithms. MIT press.
 - https://www.geeksforgeeks.org/heap-sort/
+- https://dev.to/tommy3/learning-algorithms-with-js-python-and-java-10-pyramid-4mga
 
 
+
+## Добавить еще какую нибудь сортировку
 
 # Алгоритмы поиска
 
@@ -139,6 +236,69 @@
 3. Если символы совпадают, то индексы обоих смещаются на следующий символ в строке и подстроке соответственно.
 4. Если символы не совпадают, то мы используем prefix function, чтобы определить максимальное совпадающее префиксное значение подстроки, которое находится внутри текущего несовпадающего префикса подстроки.
 5. Мы сдвигаем подстроку на это значение и продолжаем поиски с шага 2.
+
+
+### Код алгоритма
+```
+/**
+ * `indexOf` is an implementation of the Knuth-Morrison-Pratt
+ * Algorithm for finding the index of a given subsequence
+ * (identified as `word` here) within a sequence (identified as
+ * `string` here). Thanks to JavaScript's dynamic nature it
+ * works equally well with strings and arrays.
+ */
+
+module.exports = function indexOf(word, string) {
+  'use strict';
+
+  var m = 0;
+  var i = 0;
+  var table = [];
+
+  var pos = 2;
+  var cnd = 0;
+
+  table[0] = -1;
+  table[1] = 0;
+
+  // build the table for KMP. This takes `O(word.length)` steps.
+  while (pos < word.length) {
+    if (word[pos - 1] == word[cnd]) {
+      cnd = cnd + 1;
+      table[pos] = cnd;
+      pos = pos + 1;
+    } else if (cnd > 0) {
+      cnd = table[cnd];
+    } else {
+      table[pos] = 0;
+      pos = pos + 1;
+    }
+  }
+  
+  // scan the string. This takes `O(string.length)` steps.
+  while (m + i < string.length) {
+    if (word[i] == string[m + i]) {
+      if (i == word.length - 1) {
+        return m;
+      }
+      i = i + 1;
+    } else {
+      if (table[i] > -1) {
+        m = m + i - table[i];
+        i = table[i];
+      } else {
+        i = 0;
+        m = m + 1;
+      }
+    }
+  }
+  // Returns -1 if the subsequence was not found in the sequence.
+  return -1;
+};
+
+```
+
+
 
 ### Плюсы и минусы
 
@@ -168,6 +328,102 @@ BM-алгоритм, который был разработан в 1977 году
 
 3. Поиск: если найдено совпадение, то производится начало строки (подстроки). 
 
+
+
+
+
+### Код алгоритма
+```
+function boyerMooreAlgorithm(NO_OF_CHARS = 256, ) {
+ 
+   // A utility function to get maximum of two integers
+   function max (a,b)
+   {
+       return (a > b)? a: b;
+   }
+    
+   // The preprocessing function for Boyer Moore's
+   // bad character heuristic
+   function badCharHeuristic(str,size,badchar)
+   {
+       // Initialize all occurrences as -1
+         for (let i = 0; i < NO_OF_CHARS; i++)
+              badchar[i] = -1;
+     
+         // Fill the actual value of last occurrence
+         // of a character (indices of table are ascii and values are index of occurrence)
+         for (i = 0; i < size; i++)
+              badchar[ str[i].charCodeAt(0)] = i;
+   }
+    
+   /* A pattern searching function that uses Bad
+        Character Heuristic of Boyer Moore Algorithm */
+   function search(txt,pat)
+   {
+       let m = pat.length;
+         let n = txt.length;
+     
+         let badchar = new Array(NO_OF_CHARS);
+     
+         /* Fill the bad character array by calling
+            the preprocessing function badCharHeuristic()
+            for given pattern */
+         badCharHeuristic(pat, m, badchar);
+     
+         let s = 0;  // s is shift of the pattern with
+                     // respect to text
+          // there are n-m+1 potential alignments
+         while(s <= (n - m))
+         {
+             let j = m-1;
+     
+             /* Keep reducing index j of pattern while
+                characters of pattern and text are
+                matching at this shift s */
+             while(j >= 0 && pat[j] == txt[s+j])
+                 j--;
+     
+             /* If the pattern is present at current
+                shift, then index j will become -1 after
+                the above loop */
+             if (j < 0)
+             {
+                 document.write("Patterns occur at shift = " + s);
+     
+                 /* Shift the pattern so that the next
+                    character in text aligns with the last
+                    occurrence of it in pattern.
+                    The condition s+m < n is necessary for
+                    the case when pattern occurs at the end
+                    of text */
+                 //txt[s+m] is character after the pattern in text
+                 s += (s+m < n)? m-badchar[txt[s+m].charCodeAt(0)] : 1;
+     
+             }
+     
+             else
+                 /* Shift the pattern so that the bad character
+                    in text aligns with the last occurrence of
+                    it in pattern. The max function is used to
+                    make sure that we get a positive shift.
+                    We may get a negative shift if the last
+                    occurrence  of bad character in pattern
+                    is on the right side of the current
+                    character. */
+                 s += max(1, j - badchar[txt[s+j].charCodeAt(0)]);
+         }
+   }
+} // function boyerMooreAlgorithm
+
+
+
+```
+
+
+
+
+
+
 ### Плюсы и минусы
 
 Плюсы:
@@ -191,10 +447,16 @@ BM-алгоритм, который был разработан в 1977 году
 2. Роберт Седжвик. Алгоритмы на Java. М.: «Издательский дом Вильямс», 2006. 
 
 3. Р. Боуер, Д. Мур. «A New Algorithm for String Search». Communications of the ACM, 20(10): p. 762–772, October 1977.
+4. https://www.geeksforgeeks.org/boyer-moore-algorithm-for-pattern-searching/
 
 ## Алгоритм поиска в глубину (DFS)
 
-Алгоритм поиска в глубину используется для обхода графа или дерева. Алгоритм начинает обход из заданной вершины и продолжает обход в глубину пока есть не посещенные вершины, затем возвращается назад к предыдущей вершине и продолжает так до тех пор, пока все вершины не будут посещены.
+Алгоритм поиска в глубину используется для
+обхода графа или дерева. Алгоритм начинает
+обход из заданной вершины и продолжает обход в
+глубину пока есть не посещенные вершины,
+затем возвращается назад к предыдущей вершине и
+продолжает так до тех пор, пока все вершины не будут посещены.
 
 ### Логика работы 
 1. Создаем переменную, которая будет хранить информацию о посещенных вершинах. В начале все вершины помечаются как непосещенные.
@@ -202,54 +464,38 @@ BM-алгоритм, который был разработан в 1977 году
 3. Для каждой смежной вершины, которая еще не была посещена, запускаем рекурсивную функцию поиска в глубину.
 4. После обхода всех смежных вершин возвращаемся к предыдущей вершине и продолжаем поиск.
 
-### Плюсы и минусы
-Плюсы:
-- Простой в реализации и понимании
-- Эффективен для обхода графов и деревьев с большой глубиной
+### Код алгоритма
+```JavaScript
+const dfs = (graph, start) => {
+  let visited = []; // save a visited nodes 
+  let needVisit = [];  // save a need-to-visit nodes
+
+  needVisit.push(start);  // start search with start node
+
+  // looping for need-to-visit list
+  while(needVisit.length !== 0) {
+    let node = needVisit.shift(); // take a nodes which in first position in array
+    if(!visited.includes(node)){ // if this node is not visited,
+      visited.push(node); // add to visited list (now visit)
+
+      const tmp = (!graph[node] ? [] : graph[node]) 
+      needVisit = [...tmp , ...needVisit] 
+// dfs is depth first, So, nodes connected to this node has more high priority than original nodes in need-to-visit list
+    }
+  }
+  return visited.join(' ');
+}
+```
+
+### Особенности
 - Может быть использован для решения задач на поиск пути, маршрута, связности и т.д.
-
-Минусы:
-- В худшем случае может иметь экспоненциальную сложность
-- Работает только для графов и деревьев без циклов, так как при наличии циклов возможно зацикливание
+- Если в графе есть закольцованный(зацикленный) путь это может вызывает зацыкливание самого алгоритма.
 
 ### Источники
-- Introduction to Algorithms, Cormen, Leiserson, Rivest, Stein
-- GeeksforGeeks: Depth First Search or DFS for a Graph
-
-Бинарный поиск - алгоритм поиска
-элемента в отсортированном массиве
-путем деления массива на две половины
-и последовательного сужения интервала,
-в котором может находиться искомый элемент,
-до тех пор, пока искомый элемент не
-будет найден или пока не станет ясно, что элемента в массиве нет. 
-
-### Логика работы
-1. Установка границ массива (левая и правая границы);
-2. Определение середины массива и индекса серединного элемента;
-3. Сравнение искомого элемента с серединным элементом;
-4. Если искомый элемент равен серединному, возвращаем индекс серединного элемента;
-5. Если искомый элемент меньше серединного, то искать в левой половине массива;
-6. Если искомый элемент больше серединного, то искать в правой половине массива;
-7. Ограничение границ массива до найденной половины;
-8. Повторение операций с 2-го пункта до того момента, пока не будет найден искомый элемент или длина интервала поиска не станет равной нулю.
-
-### Плюсы и минусы
-Плюсы:
-- Бинарный поиск имеет асимптотическую сложность O(log n), что позволяет находить элемент в больших массивах в разы быстрее, чем линейный поиск;
-- Алгоритм подходит для поиска как одного элемента, так и нескольких элементов с использованием нескольких запросов.
-
-Минусы:
-- Для работы алгоритма необходим отсортированный массив;
-- Алгоритм не может быть использован для поиска элементов в связанных списках;
-- Бинарный поиск занимает больше памяти, чем линейный поиск, так как необходимо сохранить серединный индекс и границы массива при каждом проходе.
-
-### Источники
-- Кормен, Томас X., Лейзерсон, Чарльз И., Ривест, Рональд Л., Штайн, Клиффорд. Алгоритмы: построение и анализ. – М.: Вильямс, 2005. – 1296 с.
+- https://dev.to/phantolajang/dfsbfs-with-js-3652
+- https://ru.wikipedia.org/wiki/Поиск_в_глубину
 
 
-
-# Практическая часть
 
 ## Сравнение алгоритмов сортировки
 
